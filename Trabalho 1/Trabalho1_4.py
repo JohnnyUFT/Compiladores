@@ -47,7 +47,7 @@ def getPosfixa(palavra):
     pilha = []# pilha auxiliar
     posfixa = []# para receber expressão posfixa
     operadores = ['*', '.', '+']# em ordem de precedência
-    cont = 0 # para controle dos parêntesis
+    cont = 0 # para controle dos parênteses
 
     # 1 - VARRER TODA A EXPRESSÃO CARACTERE POR CARACTERE ...
     for simbolo in palavra:
@@ -65,18 +65,21 @@ def getPosfixa(palavra):
         # 3º caso: PARÊNTESES FECHANDO
         elif simbolo == ')':
             cont -= 1
+            # caso a):
             while pilha:
                 if pilha[-1] != '(':
                     posfixa.append(pilha.pop())
                 else:
-                    pilha.pop()
+                    break
+            # caso b):
+            pilha.pop()# desempilha '('
 
         # 4º e último caso: OPERADOR
         elif simbolo in operadores:
             while pilha:
-                if simbolo == '+' and pilha[-1] == '.'\
-                    or simbolo == '+' and pilha[-1] == '*'\
-                    or simbolo == '.' and pilha[-1] == '*'\
+                if pilha[-1] == '*' and simbolo == '.'\
+                    or pilha[-1] == '*' and simbolo == '+'\
+                    or pilha[-1] == '.' and simbolo == '+'\
                     or simbolo == pilha[-1]:
                     posfixa.append(pilha.pop())
                 else:
