@@ -1,6 +1,5 @@
 # !/usr/bin/python3.5
 # -*- coding: utf-8 -*-
-# shift+ctrl+b - to run code in atom
 '''
 author: Eufrázio Alexandre & Johnny Pereira
 email: (eufrazius,johnnyuft)@gmail.com
@@ -61,7 +60,7 @@ btn = Button(frame5, text="Converter", font=fonte1, command=principal)
 # frame4 possui apenas uma imagem (caráter decorativo)
 image = Image.open('cinema.png')
 photo = ImageTk.PhotoImage(image)
-lb3 = Label(frame6, image=photo, bg="white")
+lb3 = Label(frame6, image=photo, bg="")
 
 #  disposição de todos os widgets do frame (conteiner) nº 5 (do meio)
 lb1.grid(row=0, column=0)
