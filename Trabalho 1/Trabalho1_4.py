@@ -1,5 +1,6 @@
 # !/usr/bin/python3.5
 # -*- coding: utf-8 -*-
+# shift+ctrl+b - to run code in atom
 '''
 author: Eufrázio Alexandre & Johnny Pereira
 email: (eufrazius,johnnyuft)@gmail.com
@@ -46,7 +47,7 @@ def getPosfixa(palavra):
     pilha = []# pilha auxiliar
     posfixa = []# para receber expressão posfixa
     operadores = ['*', '.', '+']# em ordem de precedência
-    cont = 0 # para controle dos parênteses
+    cont = 0 # para controle dos parêntesis
 
     # 1 - VARRER TODA A EXPRESSÃO CARACTERE POR CARACTERE ...
     for simbolo in palavra:
@@ -71,14 +72,14 @@ def getPosfixa(palavra):
                 else:
                     break
             # caso b):
-            pilha.pop()# desempilha '('
+            pilha.pop()
 
         # 4º e último caso: OPERADOR
         elif simbolo in operadores:
             while pilha:
-                if pilha[-1] == '*' and simbolo == '.'\
-                    or pilha[-1] == '*' and simbolo == '+'\
-                    or pilha[-1] == '.' and simbolo == '+'\
+                if simbolo == '+' and pilha[-1] == '.'\
+                    or simbolo == '+' and pilha[-1] == '*'\
+                    or simbolo == '.' and pilha[-1] == '*'\
                     or simbolo == pilha[-1]:
                     posfixa.append(pilha.pop())
                 else:
@@ -88,7 +89,6 @@ def getPosfixa(palavra):
 
     # 2 - ENQUANTO HOUVER OPERADOR NA PILHA ...
     while pilha:
-        print("Debugue manual %s"%pilha)
         posfixa.append(pilha.pop())
 
 
@@ -146,22 +146,30 @@ def montaPosfixa(posfixa, operadores, palavra, cont):
                     op1 = pilha.pop()
                     valor = op1+simbolo
                     pilha.append(valor)
-    op1 = pilha.pop()
-    if not pilha and cont == 0:
-        ed2.insert(0, palavra)
-        messagebox.showinfo("Muito bem", "Expressão Aceita.")
 
-        print("Resultado: %s"%op1)
+    if not pilha:
+        print(8*"======", "\nNAO TEM NADA AQUI, OXENTE!", 8*"======", )
+        # op1 = pilha
+        messagebox.showerror("Erro", "Não há operandos para o operador!")
 
-        # limpa os campos
-        ed1.delete(0, END)
-        ed2.delete(0, END)
     else:
-        messagebox.showerror("Erro", "Expresão Rejeitada.")
 
-        # limpa os campos
-        ed1.delete(0, END)
-        ed2.delete(0, END)
+        op1 = pilha.pop()
+        if not pilha and cont == 0:
+            ed2.insert(0, palavra)
+            messagebox.showinfo("Parabéns", "Expressão Aceita!")
+
+            print("Resultado: %s"%op1)
+
+            # limpa os campos
+            ed1.delete(0, END)
+            ed2.delete(0, END)
+        else:
+            messagebox.showerror("Erro", "Expresão Rejeitada!")
+
+            # limpa os campos
+            ed1.delete(0, END)
+            ed2.delete(0, END)
 
 
 def trataConcatenacao(palavra):
@@ -235,7 +243,7 @@ btn = Button(frame5, text="Converter", font=fonte1, command=principal)
 # frame4 possui apenas uma imagem (caráter decorativo)
 image = Image.open('cinema.png')
 photo = ImageTk.PhotoImage(image)
-lb3 = Label(frame6, image=photo, bg="")
+lb3 = Label(frame6, image=photo)
 
 #  disposição de todos os widgets do frame (conteiner) nº 5 (do meio)
 lb1.grid(row=0, column=0)
@@ -248,6 +256,6 @@ btn.grid(row=1, column=2, stick=W)
 lb3.pack()
 
 Janela.title("Compiladores - Trabalho #1")
-    #  Largura x Altura + Esquerda + Topo
+#  Largura x Altura + Esquerda + Topo
 Janela.geometry("650x510+300+100")
 Janela.mainloop()
