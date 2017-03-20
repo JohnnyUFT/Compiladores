@@ -1,11 +1,11 @@
 # !/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 
-'''
+"""
 author: Eufrázio Alexandre & Johnny Pereira
 email: (eufrazius,johnnyuft)@gmail.com
 last modified: March 2017
-'''
+"""
 
 import sys
 from tkinter import messagebox
@@ -20,36 +20,36 @@ from tkinter import messagebox
 
 
 class Automato:
-    '''
+    """
     Determina características intrínsecas do autômato: sendo este uma
     quíntupla, possui 5 atributos principais e outros 2 para controle de
     operações. Acompanha 'getters' para captura de valores e 'setters'
     para alteração dos valores anteriormente definidos.
     # construtor possui sobrecarga
-    '''
-    
-    # construtor    
+    """
+
+    # construtor
     def __init__(self):
-        '''
+        """
         Construtor padrão.
-        '''
+        """
         self.alfabeto = []  # conjunto de simbolos
-        self.estados = [] # conjunto de estados
+        self.estados = []  # conjunto de estados
         self.mTransicao = [[], [], []]  # matriz de duas dimensões
         self.estadoInicial = 0
         self.estadosFinais = []
-        self.qtdEstados = 0 # registra a quantidade de estados
-        self.qtdEstadosFinais = 0 # registra a quant. de estados finais
-    
+        self.qtdEstados = 0  # registra a quantidade de estados
+        self.qtdEstadosFinais = 0  # registra a quant. de estados finais
+
     def __init__(self, simbolo):
-        '''
+        """
         Constutor usado para instanciação da base.
         Recebe obrigatoriamente um simbolo (operando) e
         imediatamente instancia o seguinte autômato:
-        '''
-        self.alfabeto = [simbolo] # setado na instanciação
-        self.estados = [0,1]
-        self.mTransicao = [[1], []] # matriz de duas dimensões
+        """
+        self.alfabeto = [simbolo]  # setado na instanciação
+        self.estados = [0, 1]
+        self.mTransicao = [[1], []]  # matriz de duas dimensões
         self.estadoInicial = 0
         self.estadosFinais = [1]
         # desnecessários aqui?
@@ -107,29 +107,27 @@ class Automato:
     def setQtdEstadosFinais(self, qtdEstadosFinais):
         self.qtdEstadosFinais = qtdEstadosFinais
 
-
     # métodos especiais:
 
     # necessário para controle da fTransicao
     def ehSimbolo(self, simbolo):
-        '''
+        """
         Recebe um simbolo e retorna a posição deste na 'linha'
          de simbolos do alfabeto. Caso não exista tal simbolo na lista,
           retorna -1
-        '''    
+        """
         for i in range(len(self.alfabeto)):
             if simbolo == self.alfabeto[i]:
                 return i
         # só retorna -1 se não encontrar simbolo equivalente
         return -1
 
-
     def ehEstado(self, estado):
-        '''
-        Recebe um estado como parâmetro e verifica se este pertence 
+        """
+        Recebe um estado como parâmetro e verifica se este pertence
         á lista de estados, caso verdade, retorna posição deste na lista,
         caso falso, retorna -1.
-        '''
+        """
 
         for i in range(len(self.estados)):
             if estado == self.estados[i]:
@@ -144,7 +142,6 @@ class Automato:
         else:
             return False
 
-
     def fTransicao(self, estado, simbolo):
         i = self.ehEstado(estado)
         j = self.ehSimbolo(simbolo)
@@ -154,9 +151,5 @@ class Automato:
             listaVazia = []
             # a corrigir
             return listaVazia
-            
-            
-
-
 
     # That's all folks!
