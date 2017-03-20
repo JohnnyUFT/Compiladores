@@ -7,8 +7,6 @@ email: (eufrazius,johnnyuft)@gmail.com
 last modified: March 2017
 '''
 
-import string
-import PIL
 import sys
 from tkinter import messagebox
 
@@ -19,30 +17,57 @@ from tkinter import messagebox
 #  juntamente com seus métodos e atributos
 #
 # *******************************
+
+
 class Automato:
-    # método construtor
-    # seria interessante construir um construtor típico para base?
-    # a simples instanciação da classe já viria com a base pronta
-    # que tal utilizar sobrecarga? é possível criar 2 construtores, para
-    # instanciação da classe com e sem parâmetros?
+    '''
+    Determina características intrínsecas do autômato: sendo este uma
+    quíntupla, possui 5 atributos principais e outros 2 para controle de
+    operações. Acompanha 'getters' para captura de valores e 'setters'
+    para alteração dos valores anteriormente definidos.
+    # construtor possui sobrecarga
+    '''
+    
+    # construtor    
     def __init__(self):
-        #self.alfabeto = ""
-        self.alfabeto = []# conjunto de simbolos
-        self.estados = 0
-        self.fTransicao = [[],[]]#matriz de duas dimensões
+        '''
+        Construtor padrão.
+        '''
+        self.alfabeto = []  # conjunto de simbolos
+        self.estados = [] # conjunto de estados
+        self.mTransicao = [[], [], []]  # matriz de duas dimensões
         self.estadoInicial = 0
         self.estadosFinais = []
+        self.qtdEstados = 0 # registra a quantidade de estados
+        self.qtdEstadosFinais = 0 # registra a quant. de estados finais
+    
+    def __init__(self, simbolo):
+        '''
+        Constutor usado para instanciação da base.
+        Recebe obrigatoriamente um simbolo (operando) e
+        imediatamente instancia o seguinte autômato:
+        '''
+        self.alfabeto = [simbolo] # setado na instanciação
+        self.estados = [0,1]
+        self.mTransicao = [[1], []] # matriz de duas dimensões
+        self.estadoInicial = 0
+        self.estadosFinais = [1]
+        # desnecessários aqui?
+        self.qtdEstados = 2
+        self.qtdEstadosFinais = 1
 
     # métodos genéricos:
+
+    # definições para os getters:
     def getAlfabeto(self):
-        return self.alfabeto    
-    
+        return self.alfabeto
+
     def getEstados(self):
         return self.estados
 
-    def getfTransicao(self):
-        # a corrigir
-        return self.matrizTransicao
+    def getmTransicao(self):
+        # necessita corrigir?
+        return self.mTransicao
 
     def getEstadoInicial(self):
         return self.estadoInicial
@@ -50,24 +75,88 @@ class Automato:
     def getEstadosFinais(self):
         return self.estadosFinais
 
+    def getQtdEstados(self):
+        return self.qtdEstados
+
+    def getQtdEstadosFinais(self):
+        return self.qtdEstadosFinais
+
+    # definições para os setters:
     def setAlfabeto(self, alfabeto):
         self.alfabeto = alfabeto
 
     def setEstados(self, estados):
         self.estados = estados
 
-    # deve receber todos os parâmetros necessários para que seja possível
-    # modificar a função de transição:
-    def setfTransicao(self, estados, alfabeto):
-        # a corrigir
-        #self.matrizTransicao = transicoes
-        pass
+    # modifica os valores da matriz de transição:
+    def setfTransicao(self, mTransicao):
+        """
+        Recebe uma matriz que sobrescreve a matriz (valores) anterior(es)
+        """
+        self.mTransicao = mTransicao
 
     def setEstadoInicial(self, estadoInicial):
         self.estadoInicial = estadoInicial
 
     def setEstadosFinais(self, estadosFinais):
         self.estadosFinais = estadosFinais
-    
 
-    messagebox.askquestion("Dúvida","Tudo bem aí?")
+    def setQtdEstados(self, qtdEstados):
+        self.qtdEstados = qtdEstados
+
+    def setQtdEstadosFinais(self, qtdEstadosFinais):
+        self.qtdEstadosFinais = qtdEstadosFinais
+
+
+    # métodos especiais:
+
+    # necessário para controle da fTransicao
+    def ehSimbolo(self, simbolo):
+        '''
+        Recebe um simbolo e retorna a posição deste na 'linha'
+         de simbolos do alfabeto. Caso não exista tal simbolo na lista,
+          retorna -1
+        '''    
+        for i in range(len(self.alfabeto)):
+            if simbolo == self.alfabeto[i]:
+                return i
+        # só retorna -1 se não encontrar simbolo equivalente
+        return -1
+
+
+    def ehEstado(self, estado):
+        '''
+        Recebe um estado como parâmetro e verifica se este pertence 
+        á lista de estados, caso verdade, retorna posição deste na lista,
+        caso falso, retorna -1.
+        '''
+
+        for i in range(len(self.estados)):
+            if estado == self.estados[i]:
+                return i
+        # só retorna -1 se não encontrar estado equivalente
+        return -1
+
+    # VERIFICAR se está correto
+    def ehEstadoFinal(self, estado):
+        if estado in self.estadosFinais:
+            return True
+        else:
+            return False
+
+
+    def fTransicao(self, estado, simbolo):
+        i = self.ehEstado(estado)
+        j = self.ehSimbolo(simbolo)
+        if (i and j) != -1:
+            return self.mTransicao[[i], [j]]
+        else:
+            listaVazia = []
+            # a corrigir
+            return listaVazia
+            
+            
+
+
+
+    # That's all folks!

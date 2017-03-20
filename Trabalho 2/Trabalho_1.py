@@ -7,15 +7,8 @@ last modified: March 2017
 '''
 import string
 import sys
-from tkinter import*
-import tkinter as tk
-import string
-import PIL
-from PIL import ImageTk, Image
-from tkinter import PhotoImage
-import sys
 from tkinter import messagebox
-from tkinter import ttk
+
 from Automato import*
 import Automato as auto
 
@@ -23,6 +16,7 @@ import Automato as auto
 # Aqui inicia-se o tratamento para transformar uma expressão infixa em posfixa.
 # Implementação do Algoritmo nº 1
 # *******************************
+
 
 def getPosfixa(palavra):
     '''
@@ -32,10 +26,10 @@ def getPosfixa(palavra):
     :return: none
     '''
     # variáveis globais
-    pilha = []# pilha auxiliar
-    posfixa = []# para receber expressão posfixa
-    operadores = ['*', '.', '+']# em ordem de precedência
-    cont = 0 # para controle dos parênteses
+    pilha = []  # pilha auxiliar
+    posfixa = []  # para receber expressão posfixa
+    operadores = ['*', '.', '+']  # em ordem de precedência
+    cont = 0  # para controle dos parênteses
 
     # Verificação especial para simbolo de concatenação:
     palavra = trataConcatenacao(palavra)
@@ -62,7 +56,7 @@ def getPosfixa(palavra):
                 else:
                     break
             # caso b):
-            pilha.pop()# desempilha '('
+            pilha.pop()  # desempilha '('
 
         # 4º e último caso: OPERADOR
         elif simbolo in operadores:
@@ -83,7 +77,7 @@ def getPosfixa(palavra):
     # converte uma vetor de simbolos em uma string
     palavra = ''.join(posfixa)
     # a título de verificação
-    print("Como string %s"%palavra)
+    print("Como string %s" %palavra)
 
     # if cont == 0:
     # retorna a expressão regular no formato polonesa reversa
@@ -110,50 +104,49 @@ def montaPosfixa(posfixa):
     operadores = ['*', '.', '+']  # em ordem de precedência
 
     for simbolo in posfixa:
-        # se simbolo é um operando
+        # se simbolo é um operando, faça-se a base
         if(simbolo not in operadores):
 
-            # transforma em autômato
-            automato = base(simbolo)
+            # transforma simbolo em autômato
+            base = auto.Automato(simbolo)
+            print("teste base: %s"%base.getAlfabeto()) # a descartar
 
-            # empilha o autômato
-            pilha.append(automato)
+            # empilha a base
+            pilha.append(base)
         else:
             # se simbolo é um operador binário
             if (simbolo == '.' or simbolo == '+') and pilha:
+                # op1 e op2 são autômatos
                 op2 = pilha.pop()
                 if pilha:
                     op1 = pilha.pop()
-                    # transforma-os em uma única palavra (um único termo):
-                    valor = op1+simbolo+op2
+                    # transforma op1 e op2 em um único autômato:
+                    # valor é um autômato
+                    if simbolo == '.':
+                        valor = concatenacao(op1, op2)
+                    elif simbolo == '+':
+                        valor = uniao(op1, op2)
                     pilha.append(valor)
                 else:
-                    messagebox.showerror("Erro", "Falta operando.")
+                    messagebox.showerror("Erro", "Falta operando!")
 
             # se simbolo é um operador unário: '*'
             else:
                 if simbolo == '*' and pilha:
                     op1 = pilha.pop()
-                    valor = op1+simbolo
+                    valor = fechoKleene(op1)
                     pilha.append(valor)
     op1 = pilha.pop()
     if not pilha:
-        #ed2.insert(0, palavra)
-        messagebox.showinfo("Muito bem", "Expressão Aceita.")
+        #  ed2.insert(0, palavra)
+        # ed2 recebe mesmo a expressão posfixa
+        messagebox.showinfo("Parabéns", "Expressão Aceita!")
+        imprimeAFD(op1)
 
-        print("Resultado: %s"%op1)
-
-        # limpa os campos
-        #ed1.delete(0, END)
-        #ed2.delete(0, END)
     else:
-        messagebox.showerror("Erro", "Expresão Rejeitada.")
+        messagebox.showerror("Erro", "Expresão Rejeitada!")
 
-        # limpa os campos
-        #ed1.delete(0, END)
-        #ed2.delete(0, END)
-
-
+       
 def trataConcatenacao(palavra):
     '''
     Verifica necessidade de explicitar os operadores
@@ -163,54 +156,104 @@ def trataConcatenacao(palavra):
     :return: palavra
     '''
     # declaração das varíaveis
-    operadores = ['*', '.', '+', '(', ')']# em ordem de precedência
+    operadores = ['*', '.', '+', '(', ')']  # em ordem de precedência
     i = 0
     j = len(palavra)-1
 
-    while i<j:
+    while i < j:
         if palavra[i] not in operadores and palavra[i+1] not in operadores \
                 or palavra[i] not in operadores and palavra[i+1] == '(' \
                 or palavra[i] == '*' and palavra[i+1] not in operadores \
                 or palavra[i] == ')' and palavra[i+1] not in operadores \
                 or palavra[i] == '*' and palavra[i+1] == '(' \
                 or palavra[i] == ')' and palavra[i+1] == '(':
-            palavra = palavra[:i+1]+'.'+palavra[i+1:]# funciona lindamente
+            palavra = palavra[:i+1]+'.'+palavra[i+1:]  # funciona lindamente
             j = len(palavra)-1
-        i+=1
+        i += 1
     return palavra
 
-def base(simbolo):
+
+def concatenacao(automatoA,automatoB):
     """
     De acordo com o algoritmo de Thompson,
-    implementa um AFND-e para um único símbolo
+    recebe 2 autômatos e junta-os em um só
     """
+    # instancia novo autômato chamando-o de concatenacao
+    concatenacao = auto.Automato()
+    
+    # seta atributos para concatenacao
+    concatenacao.setAlfabeto(uneAlfabetos(automatoA, automatoB))
+    concatenacao.setEstados(uneEstados(automatoA, automatoB, '.')) # (?)
+    concatenacao.setEstadoInicial(automatoA.getEstadoInicial())
+    concatenacao.setEstadosFinais(automatoB.getEstadosFinais())
+    concatenacao.setfTransicao() # (?)
+    concatenacao.setQtdEstados(automatoA.getQtdEstados() + automatoB.getQtdEstados())
+    concatenacao.setQtdEstadosFinais() # (?)
+    
+    return concatenacao
 
-    # cria nova estrutura do tipo Automato()
-    automato = auto.Automato()
-
-    # alimenta estrutura
-    automato.setAlfabeto(simbolo)
-    automato.setEstados([0, 1])
-    automato.setEstadoInicial(0)
-    automato.setEstadosFinais(1)
-    # falta implementar a função/matriz de transição
-
-    return automato
-
-# recebe dois simbolos para criação das bases, ou duas bases (automatos) prontas?
-def uniao(simboloA, simboloB):
+#  recebe dois autômatos e retorna um terceiro
+def uniao(automatoA,automatoB):
     """
-        implementa o algoritmo de Thompson para operação de união.
-        retorna um autômato, isto é, uma quíntupla (pode ser uma lista, com 5 elementos).
+        Implementa o algoritmo de Thompson para operação de união.
+        retorna um autômato, isto é, uma quíntupla (instância de auto.Automato).
         """
-    pass
+    uniao = auto.Automato()
+    # setar atributos para uniao
+    return uniao
 
-def concatenacao(simboloA, simboloB):
-    """
-        operação de concatenação (vide: Algoritmo de Thompson).
-        também retorna um autômato.
-        """
-    pass
+# recebe apenas um autômato e retorna um outro, de acordo com op1
+# algoritmo de Thompson
+def fechoKleene(automato):
+    fechoKleene = auto.Automato()
+    # setar atributos para fechoKleene
+    return fechoKleene
 
-def fechoKleene(simbolo):
-    pass
+# otimizar este método
+def uneAlfabetos(automatoA, automatoB):
+    '''
+    Une os alfabetos em um único CONJUNTO.
+    '''
+    alfabetoFinal = []
+    alfabetoA = automatoA.getAlfabeto()
+    alfabetoB = automatoB.getAlfabeto()
+    for simbolo in alfabetoA:
+        alfabetoFinal = simbolo
+    for simbolo in alfabetoB:
+        if simbolo not in alfabetoFinal:
+            alfabetoFinal = simbolo
+    
+    # insere palavra vazia ('&') entre os simbolos do alfabeto
+    alfabetoFinal.append('&') # insere-a como último elemento
+
+    return alfabetoFinal
+
+
+def uneEstados(autoA, autoB, op):
+    '''
+    Recebe dois automatos e retorna uma lista com estados iguais
+    á quantidade de estados de autoA + autoB.
+    Parâmetro: op: refere-se a operação a ser realizada, a saber,
+    concatenação, uniao, ou fechoKleene.
+    # repensar sua utilização.
+    '''
+
+    if op == '.':
+        qtdEstados = len(autoA.getQtdEstados()) + len(autoB.getQtdEstados())
+    elif op == '+' or op == '*':
+        qtdEstados = len(autoA.getQtdEstados()) + len(autoB.getQtdEstados()) + 2
+    
+    lEstados = [] # a receber a lista com estados unidos (Make America Great Again!)
+    lEstados = range(qtdEstados) # cria lista com valores de 0 a qtdEstados-1
+    
+    return lEstados
+
+# REFAZER utilizando GUI
+def imprimeAFD(afd):
+    print("\n Simbolos do Alfabeto: %s"%afd.getAlfabeto())
+    print("\n Estados do Autômato Final: %s"%afd.getEstados())
+    print("\n Matriz de Transição: %s"%afd.getmTransicao())
+    print("\n Estado Inicial: %s"%afd.getEstadoInicial())
+    print("\n Estados Finais: %s"%afd.getEstadosFinais())
+    print("\n Quantidade de Estados: %s"%afd.getQtdEstados())
+    print("\n Quantidade de Estados Finais: %s"%afd.getQtdEstadosFinais())
