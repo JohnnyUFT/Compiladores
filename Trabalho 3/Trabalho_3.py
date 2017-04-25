@@ -578,29 +578,24 @@ def conversao(afn):
     for i in range(tamAlfabeto):
         matR[0][i] = []  # cria células vazias na matrizR
 
-    # conjuntos que formam novos estados:
-    novosEstados = []
     indiceEstado = 0 # guarda indice (chave) do novo estado (fecho-e unidos)
     visitados = set()
     f = afn.fechoE(indiceEstado, visitados)
-    novosEstados.append(list(f))
-
-    # marcador para celula ativa:
-    marcaCelula = 0
+    fechoAtual = list(f)
+    novosEstados = [] # guarda lista com novos estados
+    novosEstados.append(fechoAtual)
 
     # percorre cada simbolo do alfabeto i.e. coluna da matrizAFN
     for coluna in range(len(alfabeto)):
         uniaoFecho = set() # guarda uniao fecho-e estados celula matrizAFN
 
-        # inicia computação dos estados a partir de q0;
-        if marcaCelula != -1:
-            conjunto = novosEstados[marcaCelula]
-            for estado in conjunto:
-
+        while True:
+            for estado in fechoAtual:
                 if matA[estado][coluna]:
                     visitados = set()
                     # calcular o fecho de mat[elemento][coluna], certo?
                     lista = matA[estado][coluna]
+
                     for i in lista:
                         f = afn.fechoE(i, visitados)
                         # unir os fechos dos estados encontrados:
@@ -612,32 +607,38 @@ def conversao(afn):
             if fechosUnidos:
                 # verifica necessidade de criar novos estados:
                 if fechosUnidos not in novosEstados:
-                    #indiceEstado += 1
+                    # coloca fechoAtual como estado novo:
                     novosEstados.append(fechosUnidos)
-
                     # atualiza tamanho da matriz
                     matR = np.append(matR, np.zeros\
                         ((indiceEstado+1, tamAlfabeto),dtype=list), axis=0)
-                    print("\nindice do estados: %s"%indiceEstado)
 
-                    # atualiza conteudo da matriz:
-                    matR[indiceEstado][coluna] = fechosUnidos
-                    indiceEstado += 1
-                    #print("matR: \n%s" % matR)
+                # estado já existe, i.e, não é estado novo:
 
-            # trata estado de erro:
+                # atualiza conteudo da matriz:
+                matR[indiceEstado][coluna] = fechosUnidos
+                indiceEstado += 1
+
+            # trata-se estado de erro:
             else:
+                # criar estado de erro:
                 if -1 not in novosEstados:
-                    indiceEstado += 1
-                    novosEstados.append(-1)
                     # atualiza tamanho da matriz
                     matR = np.append(matR, np.zeros \
                         ((indiceEstado + 1, tamAlfabeto), dtype=list), axis=0)
 
-                    # atualiza conteudo da matriz:
-                    matR[indiceEstado][coluna] = [-1]
+                # seta estado de erro:
 
-            if len(novosEstados !=)
+                # atualiza conteudo da matriz:
+                matR[indiceEstado][coluna] = [-1]
+
+            # se houve alteração no fechoAtual, então:
+            if fechoAtual == fechosUnidos:
+                # sai do while:
+                break
+            else:
+                # atualiza conteudo de fechoAtual:
+                fechoAtual = fechosUnidos
 
     print("\nmatR: \n%s" % matR)
 
