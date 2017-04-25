@@ -1,4 +1,4 @@
-# !/usr/bin/python3.5
+# !/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 author: Eufrázio Alexandre & Johnny Pereira
@@ -10,6 +10,7 @@ from tkinter import messagebox
 import Automato as auto
 from Automato import *
 import numpy as np  # para manipulação das matrizes
+from collections import Counter # para manipulação dos dicionários
 # import seaborn as sns
 
 # *******************************
@@ -33,6 +34,8 @@ def getPosfixa(palavra):
 
     # Verificação especial para simbolo de concatenação:
     palavra = trataConcatenacao(palavra)
+
+    print("\nExpressão infixa: %s"%palavra)
 
     # 1 - VARRER TODA A EXPRESSÃO CARACTERE POR CARACTERE ...
     for simbolo in palavra:
@@ -77,7 +80,7 @@ def getPosfixa(palavra):
     # converte uma vetor de simbolos em uma string
     # printar a mesma
     palavra = ''.join(posfixa)
-    print("\nExpressão posfixa: %s\n"%palavra)
+    print("\nExpressão posfixa: %s" % palavra)
 
     # retorna a expressão regular no formato polonesa reversa
     return posfixa
@@ -86,6 +89,8 @@ def getPosfixa(palavra):
 # Implementação do Algoritmo nº 2:
 # recebe a expressão posfixa e tenta montá-la (resolvê-la)
 #  *******************************
+
+
 def montaPosfixa(posfixa):
     """
     'Monta' a expressão posfixa utilizando a instância de autômatos
@@ -103,10 +108,10 @@ def montaPosfixa(posfixa):
         if(simbolo not in operadores):
 
             # transforma simbolo em autômato
-            afd = base(simbolo)
+            afn = base(simbolo)
 
             # empilha a base
-            pilha.append(afd)
+            pilha.append(afn)
         else:
             # se simbolo é um operador binário
             if (simbolo == '.' or simbolo == '+') and pilha:
@@ -117,30 +122,31 @@ def montaPosfixa(posfixa):
                     # transforma op1 e op2 em um único autômato:
                     # afd é o autômato resultante
                     if simbolo == '.':
-                        afd = concatena(op1, op2)
-                        pilha.append(afd)
+                        afn = concatena(op1, op2)
+                        pilha.append(afn)
                     elif simbolo == '+':
-                        afd = une(op1, op2)
+                        afn = une(op1, op2)
                         # corrigir nome e/ou identação
-                        pilha.append(afd)
+                        pilha.append(afn)
                 else:
-                    messagebox.showerror("Erro", "Falta operando!")
+                    #messagebox.showerror("Erro", "Falta operando!")
+                    print("\nFaltam operandos!")
 
             # se simbolo é um operador unário: '*'
             else:
                 if simbolo == '*' and pilha:
                     op1 = pilha.pop()
-                    afd = fechoKleene(op1)
-                    pilha.append(afd)
+                    afn = fechoKleene(op1)
+                    pilha.append(afn)
     op1 = pilha.pop()
     if not pilha:
-        #  ed2.insert(0, palavra)
-        # ed2 recebe mesmo a expressão posfixa
-        messagebox.showinfo("Parabéns", "Expressão Aceita!")
-        imprimeAFD(op1)
+        #messagebox.showinfo("Parabéns", "Expressão Aceita!")
+        #print("\nExpressão Aceita!")
+        imprimeAutomato(op1)
 
     else:
-        messagebox.showerror("Erro", "Expresão Rejeitada!")
+        #messagebox.showerror("Erro", "Expresão Rejeitada!")
+        print("\nExpresão Rejeitada!")
 
 
 def trataConcatenacao(palavra):
@@ -185,7 +191,6 @@ def base(simbolo):
     b[0][0] = [1]
     b[1][0] = []
 
-    
     afd.setEstados([0, 1])
     afd.setEstadoInicial(0)
     afd.setEstadoFinal(1)
@@ -202,7 +207,7 @@ def concatena(automatoA, automatoB):
     :param automatoB: operando B;
     :return: um autômato resultante da operação de concatenação.
     """
-    # instancía novo autômato chamando-o de concatenacao
+    # instancia novo autômato chamando-o de concatenacao
     concatenacao = auto.Automato()
 
     concatenacao.setEstadoInicial(automatoA.getEstadoInicial())
@@ -240,13 +245,13 @@ def une(automatoA, automatoB):
     tam = []
     for i in range(t1):
         tam.append(i)
-    uniao.setEstados(tam) # conjunto de estados
+    uniao.setEstados(tam)  # conjunto de estados
 
     estados = uniao.getEstados()
 
-    uniao.setEstadoInicial(estados[0]) # estado inicial
-    uniao.setEstadoFinal(estados[-1]) # estado final
-    uniao.setAlfabeto(uneAlfabetos(automatoA, automatoB)) # alfabeto
+    uniao.setEstadoInicial(estados[0])  # estado inicial
+    uniao.setEstadoFinal(estados[-1])  # estado final
+    uniao.setAlfabeto(uneAlfabetos(automatoA, automatoB))  # alfabeto
 
     matR = preencheMatriz(uniao.getEstados(), uniao.getAlfabeto())
     uniao.setmTransicao(matR)
@@ -256,13 +261,12 @@ def une(automatoA, automatoB):
     return uniao
 
 
-
 def fechoKleene(automato):
     """
-    Recebe apenas um autômato e aplica sobre o mesmo, o 
+    Recebe apenas um autômato e aplica sobre o mesmo, o
     algoritmo de Thompson para o caso de haver fecho de Kleene.
     :param automato: instância de autômato(). É uma base.
-    :return: um autômato, que é o fecho kleene aplicado á base. 
+    :return: um autômato, que é o fecho kleene aplicado á base.
     """
     fechoK = auto.Automato()
     # setar atributos para fechoKleene
@@ -278,7 +282,7 @@ def fechoKleene(automato):
     fechoK.setEstadoInicial(estados[0])  # estado inicial
     fechoK.setEstadoFinal(estados[-1])  # estado final
     # necessário por acrecentar '&' ao alfabeto
-    fechoK.setAlfabeto(uneAlfabetos(automato, automato)) # alfabeto
+    fechoK.setAlfabeto(uneAlfabetos(automato, automato))  # alfabeto
 
     matR = preencheMatriz(fechoK.getEstados(), fechoK.getAlfabeto())
     fechoK.setmTransicao(matR)
@@ -329,7 +333,7 @@ def uneEstados(autoA, autoB):
     estadosA = autoA.getEstados()
     estadosB = autoB.getEstados()
 
-    t1 = len(estadosA)+len(estadosB)
+    t1 = len(estadosA) + len(estadosB)
 
     return t1
 
@@ -351,26 +355,26 @@ def preencheMatriz(estados, alfabeto):
 
 def fTransicao1(atual, autoA, autoB):
     """
-	Implementa a função de transição para concatenação de autômatos;
-	Todo o trabalho é feito dinamicamente;
-		
-		:param atual: Autômato resultante pós-operação;
-		:param autoA: operando (autômato) A da expressão;
-		:param autoB: operando (autômato) B da expressão;
-		:return: autômato resultante, aqui referenciado como atual/R.
-		"""
+        Implementa a função de transição para concatenação de autômatos;
+        Todo o trabalho é feito dinamicamente;
+
+                :param atual: Autômato resultante pós-operação;
+                :param autoA: operando (autômato) A da expressão;
+                :param autoB: operando (autômato) B da expressão;
+                :return: autômato resultante, aqui referenciado como atual/R.
+                """
     # referenciam os objetos retornados
-    matA = autoA.getmTransicao() # matriz de transicao do autômato A
-    matB = autoB.getmTransicao() # matriz de transicao do autômato B
-    matR = atual.getmTransicao() # matriz de transicao do autômato R
+    matA = autoA.getmTransicao()  # matriz de transicao do autômato A
+    matB = autoB.getmTransicao()  # matriz de transicao do autômato B
+    matR = atual.getmTransicao()  # matriz de transicao do autômato R
 
     # final1 + atual2 + 1
-    alfaA = autoA.getAlfabeto() # lista de simbolos do alfabeto do autômato A
-    alfaB = autoB.getAlfabeto() # lista de simbolos do alfabeto do autômato B
-    estA = autoA.getEstados() # lista de estados do autômato A
-    estB = autoB.getEstados() # lista de estados do autômato B
-    alfaR = atual.getAlfabeto() # lista de simbolos do alfabeto do autômato R
-    estR = atual.getEstados() # lista de estados do autômato R
+    alfaA = autoA.getAlfabeto()  # lista de simbolos do alfabeto do autômato A
+    alfaB = autoB.getAlfabeto()  # lista de simbolos do alfabeto do autômato B
+    estA = autoA.getEstados()  # lista de estados do autômato A
+    estB = autoB.getEstados()  # lista de estados do autômato B
+    alfaR = atual.getAlfabeto()  # lista de simbolos do alfabeto do autômato R
+    estR = atual.getEstados()  # lista de estados do autômato R
 
     # para matriz A:
     for simbolo in alfaA:
@@ -395,7 +399,7 @@ def fTransicao1(atual, autoA, autoB):
                     # atualiza posicao do estado de B em relacao a R
                     posEstadoR = estado + estA.index(estA[-1]) + 1
                     posSimboloR = getPosicaoSimbolo(simbolo, alfaR)
-                    # atualiza valor do elemento em R:
+                    # atualiza valor do elemento em relação a R:
                     k = elemento + estA.index(estA[-1]) + 1
                     # possível já haver estados lá, então:
                     if k not in matR[posEstadoR][posSimboloR]:
@@ -405,13 +409,13 @@ def fTransicao1(atual, autoA, autoB):
     # i.e, fTransicao(estadoFinalA, '&'): estadoInicialB
 
     # i = posição do estado final de A
-    i = estA.index(estA[-1])
+    #i = estA.index(estA[-1])
+    i = estA[-1]
     # j recebe posição do simbolo '&' na matriz resultante
-    #j = getPosicaoSimbolo('&', alfaR) # desnecessário, pois sabemos
-    # que o '&' está, indubitavelmente, na última posicao.
     j = alfaR.index(alfaR[-1])
     # k = posição do estado inicial de B
-    k = estB.index(estB[0])
+    #k = estB.index(estB[0])
+    k = estB[0]
     # setando célula da matriz
     matR[i][j].append(i + k + 1)
     # na primeira iteração, fica assim:
@@ -419,7 +423,6 @@ def fTransicao1(atual, autoA, autoB):
 
     # NÃO NECESSITA RETORNO
     return matR
-
 
 
 def fTransicao2(atual, autoA, autoB):
@@ -452,9 +455,9 @@ def fTransicao2(atual, autoA, autoB):
                 celula = matA[estado][posSimboloA]
                 for elemento in celula:
                     # estados em A são deslocados em +1 em R
-                    if elemento not in matR[estado+1][posSimboloR]:
+                    if elemento not in matR[estado + 1][posSimboloR]:
                         # elemento é referência a um estado e por isso, +1
-                        matR[estado+1][posSimboloR].append(elemento + 1)
+                        matR[estado + 1][posSimboloR].append(elemento + 1)
 
     # para matriz B:
     for simbolo in alfaB:
@@ -484,17 +487,19 @@ def fTransicao2(atual, autoA, autoB):
     matR[estA[-1] + 1][j].append(estR[-1])
     matR[estB[-1] + (estA[-1] + 1) + 1][j].append(estR[-1])
 
+    #matR = fTransicaoVazia(atual, autoA, autoB)
+
     # desnecessário, pois as alterações já foram feitas
     return matR
 
 
 def fTransicao3(fechoK, autoA):
     """
-    Aplica transições para fecho de Kleene ao autômato 
+    Aplica transições para fecho de Kleene ao autômato
     recebido como parâmetro.
     # Autômato resultante referenciado como autômato R.
     :param fechoK: autômato #Resultante da operação;
-    :param autoA: base para aplicação do fecho Kleene; 
+    :param autoA: base para aplicação do fecho Kleene;
     :return: autômato resultante (fechoK).
     """
 
@@ -529,7 +534,6 @@ def fTransicao3(fechoK, autoA):
 
     matR[estA[-1] + 1][j].append(estA[0] + 1)
     matR[estA[-1] + 1][j].append(estR[-1])
-    
 
 
 def getPosicaoSimbolo(simbolo, alfabeto):
@@ -548,15 +552,118 @@ def getPosicaoSimbolo(simbolo, alfabeto):
     return posicao
 
 
+def conversao(afn):
+    """
+    Monta o AFD, a partir do AFND-e e do Fecho-e de cada estado.
+    :return: um AFD.
+    """
+
+    # instancia novo automato:
+    afd = auto.Automato()
+    afd.setEstadoInicial(0) # seta estado inicial
+
+    alfa = afn.getAlfabeto()
+    alfabeto = alfa.copy() # absolutamente necessário
+
+    # por não ter colocado '&' junto ao alfabeto da base:
+    if len(alfabeto) > 1:
+        # retira último elemento ('&'):
+        alfabeto.pop()
+    tamAlfabeto = len(alfabeto)
+
+    afd.setAlfabeto(alfabeto) # seta alfabeto
+    matA = afn.getmTransicao()
+
+    matR = np.zeros([1, tamAlfabeto], dtype=list)  # cria array de listas
+    for i in range(tamAlfabeto):
+        matR[0][i] = []  # cria células vazias na matrizR
+
+    # conjuntos que formam novos estados:
+    novosEstados = []
+    indiceEstado = 0 # guarda indice (chave) do novo estado (fecho-e unidos)
+    visitados = set()
+    f = afn.fechoE(indiceEstado, visitados)
+    novosEstados.append(list(f))
+
+    # marcador para celula ativa:
+    marcaCelula = 0
+
+    # percorre cada simbolo do alfabeto i.e. coluna da matrizAFN
+    for coluna in range(len(alfabeto)):
+        uniaoFecho = set() # guarda uniao fecho-e estados celula matrizAFN
+
+        # inicia computação dos estados a partir de q0;
+        if marcaCelula != -1:
+            conjunto = novosEstados[marcaCelula]
+            for estado in conjunto:
+
+                if matA[estado][coluna]:
+                    visitados = set()
+                    # calcular o fecho de mat[elemento][coluna], certo?
+                    lista = matA[estado][coluna]
+                    for i in lista:
+                        f = afn.fechoE(i, visitados)
+                        # unir os fechos dos estados encontrados:
+                        uniaoFecho.update(f)
+
+            # converte para lista (conveniente para o momento)
+            fechosUnidos = list(uniaoFecho)
+
+            if fechosUnidos:
+                # verifica necessidade de criar novos estados:
+                if fechosUnidos not in novosEstados:
+                    #indiceEstado += 1
+                    novosEstados.append(fechosUnidos)
+
+                    # atualiza tamanho da matriz
+                    matR = np.append(matR, np.zeros\
+                        ((indiceEstado+1, tamAlfabeto),dtype=list), axis=0)
+                    print("\nindice do estados: %s"%indiceEstado)
+
+                    # atualiza conteudo da matriz:
+                    matR[indiceEstado][coluna] = fechosUnidos
+                    indiceEstado += 1
+                    #print("matR: \n%s" % matR)
+
+            # trata estado de erro:
+            else:
+                if -1 not in novosEstados:
+                    indiceEstado += 1
+                    novosEstados.append(-1)
+                    # atualiza tamanho da matriz
+                    matR = np.append(matR, np.zeros \
+                        ((indiceEstado + 1, tamAlfabeto), dtype=list), axis=0)
+
+                    # atualiza conteudo da matriz:
+                    matR[indiceEstado][coluna] = [-1]
+
+            if len(novosEstados !=)
+
+    print("\nmatR: \n%s" % matR)
+
+
+def mostraFecho(afn):
+    estados = afn.getEstados()
+    for i in estados:
+        visitados = set()
+        print("Fecho-e de q%d = %s"%(i, afn.fechoE(i, visitados)))
+
 
 # REFAZER utilizando GUI
-def imprimeAFD(afd):
-    print("\n Simbolos do Alfabeto: %s" % afd.getAlfabeto())
+def imprimeAutomato(automato):
+    print("\n Simbolos do Alfabeto: %s" % automato.getAlfabeto())
 
     print("\n Estados do Autômato Resultante: ")
-    for i in range(len(afd.getEstados())):
-        print("q%s"%i)
-    print("\n Matriz de Transição: \n%s" % afd.getmTransicao())
-    print("\n Estado Inicial: ->q%s" % afd.getEstadoInicial())
-    print("\n Estado Final: *q%s\n" % afd.getEstadoFinal())
+    for i in range(len(automato.getEstados())):
+        print("q%s" % i)
+    print("\n Matriz de Transição: \n%s" % automato.getmTransicao())
+    print("\n Estado Inicial: ->q%s" % automato.getEstadoInicial())
+    print("\n Estado Final: *q%s\n" % automato.getEstadosFinais())
 
+    mostraFecho(automato)
+
+    #monta AFD a partir do AFN
+
+    # duas versões do mesmo método:
+    #converteAFN_em_AFD(automato)
+    conversao(automato)

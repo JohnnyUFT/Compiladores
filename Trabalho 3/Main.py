@@ -1,4 +1,4 @@
-# !/usr/bin/python3.5
+#/usr/lib64/python3.5
 # -*- coding: utf-8 -*-
 
 '''
@@ -7,8 +7,8 @@ email: (eufrazius,johnnyuft)@gmail.com
 last modified: March 2017
 '''
 
-import Trabalho_1 as t1
-from Trabalho_1 import *
+import Trabalho_3 as t1
+from Trabalho_3 import *
 
 
 # *******************************
@@ -35,12 +35,12 @@ class Converte():
     # atributos:
     pilha = []  # instancia uma lista (pilha) vazia
 
-    expressao = input("Informe a expressão regular:\n")
+    expressao = input("\nInforme a expressão regular:\n")
 
-    # chama getPosfixa do Trabalho_1
+    # chama getPosfixa do arquivo Trabalho_3.py
     # sobrescreve o valor de expressao com retorno de getPosfixa
     expressao = t1.getPosfixa(expressao)
 
-    # chama montaPosfixa do Trabalho_1
+    # chama montaPosfixa do arquivo Trabalho_3.py
     t1.montaPosfixa(expressao)
     # That's all folks!
