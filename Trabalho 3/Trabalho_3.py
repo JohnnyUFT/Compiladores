@@ -142,7 +142,15 @@ def montaPosfixa(posfixa):
     if not pilha:
         #messagebox.showinfo("Parabéns", "Expressão Aceita!")
         #print("\nExpressão Aceita!")
+
+        #mostra os fechos-e de cada estado:
+        mostraFecho(op1)
+
+        # imprime a quintupla que define o automato:
         imprimeAutomato(op1)
+
+        # monta AFD a partir do AFN:
+        conversao(op1)
 
     else:
         #messagebox.showerror("Erro", "Expresão Rejeitada!")
@@ -578,70 +586,108 @@ def conversao(afn):
     for i in range(tamAlfabeto):
         matR[0][i] = []  # cria células vazias na matrizR
 
-    indiceEstado = 0 # guarda indice (chave) do novo estado (fecho-e unidos)
+    indiceEstado = 0 # guarda indice do estado atual (fecho-e unidos)
     visitados = set()
     f = afn.fechoE(indiceEstado, visitados)
     fechoAtual = list(f)
     novosEstados = [] # guarda lista com novos estados
     novosEstados.append(fechoAtual)
+    tamEstadosAtual = len(novosEstados)
+    tamEstadosAntigo = 100
 
-    # percorre cada simbolo do alfabeto i.e. coluna da matrizAFN
-    for coluna in range(len(alfabeto)):
-        uniaoFecho = set() # guarda uniao fecho-e estados celula matrizAFN
+# PULO DO GATO:
+    while tamEstadosAtual != tamEstadosAntigo :
+        for estado in fechoAtual:
+            uniaoFecho = set()  # fechos dos estados encontrados
 
-        while True:
-            for estado in fechoAtual:
+            # percorre simbolos do alfabeto i.e. coluna da matrizAFN
+            for coluna in range(tamAlfabeto):
+                #print("Indice Estado: %s Coluna: %s" % (indiceEstado, coluna))
                 if matA[estado][coluna]:
-                    visitados = set()
-                    # calcular o fecho de mat[elemento][coluna], certo?
-                    lista = matA[estado][coluna]
 
+                    lista = matA[estado][coluna]
                     for i in lista:
+                        visitados = set()
                         f = afn.fechoE(i, visitados)
                         # unir os fechos dos estados encontrados:
                         uniaoFecho.update(f)
 
-            # converte para lista (conveniente para o momento)
-            fechosUnidos = list(uniaoFecho)
+                # converte para lista (conveniente para o momento)
+                fechosUnidos = list(uniaoFecho)
 
-            if fechosUnidos:
-                # verifica necessidade de criar novos estados:
-                if fechosUnidos not in novosEstados:
-                    # coloca fechoAtual como estado novo:
-                    novosEstados.append(fechosUnidos)
-                    # atualiza tamanho da matriz
-                    matR = np.append(matR, np.zeros\
-                        ((indiceEstado+1, tamAlfabeto),dtype=list), axis=0)
+                if fechosUnidos:
+                    # verifica necessidade de criar novos estados:
+                    if fechosUnidos not in novosEstados:
+                        # coloca fechoAtual como novo estado:
+                        novosEstados.append(fechosUnidos)
+                        # atualiza tamanho da matriz
+                        matR = atualizaTamMatriz(matR, indiceEstado, tamAlfabeto)
+                        indiceEstado += 1
 
-                # estado já existe, i.e, não é estado novo:
 
-                # atualiza conteudo da matriz:
-                matR[indiceEstado][coluna] = fechosUnidos
-                indiceEstado += 1
+                    # estado já existe, i.e, não é estado novo:
 
-            # trata-se estado de erro:
-            else:
-                # criar estado de erro:
-                if -1 not in novosEstados:
-                    # atualiza tamanho da matriz
-                    matR = np.append(matR, np.zeros \
-                        ((indiceEstado + 1, tamAlfabeto), dtype=list), axis=0)
+                    # atualiza conteudo da matriz:
+                    matR = atualizaContMatriz(matR, indiceEstado-1, coluna, fechosUnidos)
 
-                # seta estado de erro:
+                # trata-se estado de erro:
+                else:
+                    qErro = [-1]
+                    # criar estado de erro:
+                    if qErro not in novosEstados:
+                        # coloca -1 como novo estado:
+                        novosEstados.append(qErro)
+                        # atualiza tamanho da matriz
+                        matR = atualizaTamMatriz(matR, indiceEstado, tamAlfabeto)
+                        indiceEstado += 1
 
-                # atualiza conteudo da matriz:
-                matR[indiceEstado][coluna] = [-1]
+                    # atualiza conteudo da matriz:
+                    matR = atualizaContMatriz(matR, indiceEstado-1, coluna, qErro)
+
+            # NECESSITA CORREÇÕES AQUI:
+            print("Fecho Atual: %s Fecho Unidos: %s"%(fechoAtual, fechosUnidos))
 
             # se houve alteração no fechoAtual, então:
+            tamEstadosAntigo = tamEstadosAtual
+            tamEstadosAtual = len(novosEstados)
             if fechoAtual == fechosUnidos:
                 # sai do while:
                 break
             else:
-                # atualiza conteudo de fechoAtual:
+            # atualiza conteudo de fechoAtual:
                 fechoAtual = fechosUnidos
+
 
     print("\nmatR: \n%s" % matR)
 
+def atualizaTamMatriz(matR, indiceEstado, tamAlfabeto):
+    """
+    Atualiza tamanho da matriz resultante conforme necessidade;
+    :param matR: matriz em seu tamanho atual.
+    :param indiceEstado: marca a quantidade de estados (qtd linhas)
+    :param tamAlfabeto: marca qtd de simbolos (qtd colunas)
+    :return: matrizR - matriz com tamanho atualizado;
+    """
+    matrizR = np.append(matR, np.zeros \
+        ((indiceEstado, tamAlfabeto), dtype=list), axis=0)
+
+
+    return matrizR
+
+def atualizaContMatriz(matR, linha, coluna, conteudo):
+    """
+    Atualiza conteúdo da matriz resultante;
+    :param matR: matriz a receber conteúdo;
+    :param linha: marca a linha vigente;
+    :param coluna: marca a coluna vigente;
+    :param conteudo: conteudo a ser inserido na matriz. 
+    :return: matriz com conteúdo atualizado.
+    """
+
+    print("\nlinha: [%s] coluna: [%s] conteudo: [%s]"%(linha, coluna, conteudo))
+    matR[linha][coluna] = conteudo
+
+    return matR
 
 def mostraFecho(afn):
     estados = afn.getEstados()
@@ -650,8 +696,13 @@ def mostraFecho(afn):
         print("Fecho-e de q%d = %s"%(i, afn.fechoE(i, visitados)))
 
 
-# REFAZER utilizando GUI
+# REFAZER ESTE MÉTODO UTILIZANDO TKINTER OU DJANGO
 def imprimeAutomato(automato):
+    """
+    Imprime a quintupla que define o automato;
+    :param automato: instancia da classe automato. Possui cinco atributos essenciais.
+     Os mesmos são impressos aqui.
+    """
     print("\n Simbolos do Alfabeto: %s" % automato.getAlfabeto())
 
     print("\n Estados do Autômato Resultante: ")
@@ -660,11 +711,3 @@ def imprimeAutomato(automato):
     print("\n Matriz de Transição: \n%s" % automato.getmTransicao())
     print("\n Estado Inicial: ->q%s" % automato.getEstadoInicial())
     print("\n Estado Final: *q%s\n" % automato.getEstadosFinais())
-
-    mostraFecho(automato)
-
-    #monta AFD a partir do AFN
-
-    # duas versões do mesmo método:
-    #converteAFN_em_AFD(automato)
-    conversao(automato)
