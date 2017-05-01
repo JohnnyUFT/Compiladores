@@ -50,19 +50,20 @@ class Automato:
     def getEstadoInicial(self):
         return self.estadoInicial
 
-    def getEstadosFinais(self):
-        return self.estadoFinal
-
-    def getEstadoFinal(self, posEstado):
+    def getEstadosFinais(self, posEstado):
         """
         Método que verifica se determinado estado é ou não final;
         :return:
         """
-        lEstados = self.getEstadosFinais()
+        lEstados = self.getEstados(self)
         for i in lEstados:
             if posEstado == i:
                 return True
         return False
+
+    def getEstadoFinal(self):
+        return self.estadoFinal
+
 
     def getQtdEstados(self):
         qtdEstados = len(self.estados)

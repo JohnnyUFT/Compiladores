@@ -143,15 +143,23 @@ def montaPosfixa(posfixa):
         #messagebox.showinfo("Parabéns", "Expressão Aceita!")
         #print("\nExpressão Aceita!")
 
-        # imprime a quintupla que define o automato:
+        # imprime AFN:
+        print("\n\n")
+        print("==================================\n")
+        print("========= AFN ====================\n")
         imprimeAutomato(op1)
 
         # mostra os fechos-e de cada estado:
         mostraFecho(op1)
 
         # monta AFD a partir do AFN:
-        #conversao(op1)
-        conversao_2(op1)
+        afd = conversao(op1)
+
+        # imprime AFD:
+        print("\n\n")
+        print("==================================\n")
+        print("========= AFD ====================\n")
+        imprimeAutomato(afd)
 
     else:
         #messagebox.showerror("Erro", "Expresão Rejeitada!")
@@ -299,8 +307,6 @@ def fechoKleene(automato):
     fTransicao3(fechoK, automato)
 
     return fechoK
-
-# otimizar este método
 
 
 def uneAlfabetos(autoA, autoB):
@@ -588,95 +594,6 @@ def conversao(afn):
         matR[0][i] = []  # cria células vazias na matrizR
 
     indiceEstado = 0 # guarda indice do estado atual (fecho-e unidos)
-    visitados = set()
-    f = afn.fechoE(indiceEstado, visitados)
-    fechoAtual = list(f)
-    novosEstados = [] # guarda lista com novos estados
-    novosEstados.append(fechoAtual)
-    flag = True
-
-# VOLTAMOS ao problema das colunas que não iteram no tempo correto!
-    while flag:
-        for coluna in range(tamAlfabeto):
-            uniaoFecho = set()  # fechos dos estados encontrados
-
-            # percorre simbolos do alfabeto i.e. coluna da matrizAFN
-            for estado in fechoAtual:
-                #print("Indice Estado: %s Coluna: %s" % (indiceEstado, coluna))
-                if matA[estado][coluna]:
-
-                    lista = matA[estado][coluna]
-                    for i in lista:
-                        visitados = set()
-                        f = afn.fechoE(i, visitados)
-                        print("Fecho-e de q%s: %s"%(i,f))
-                        # unir os fechos dos estados encontrados:
-                        uniaoFecho.update(f)
-
-            # converte para lista (conveniente para o momento)
-            fechosUnidos = list(uniaoFecho)
-
-            if fechosUnidos:
-                # verifica necessidade de criar novos estados:
-                if fechosUnidos not in novosEstados:
-                    # coloca fechoAtual como novo estado:
-                    novosEstados.append(fechosUnidos)
-                    # atualiza tamanho da matriz
-                    qtdEstados = len(novosEstados)
-                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
-                # atualiza conteudo da matriz:
-                matR = atualizaContMatriz(matR, indiceEstado, coluna, fechosUnidos)
-
-            # trata-se estado de erro:
-            else:
-                qErro = [-1]
-                if qErro not in novosEstados:
-                    # coloca qErro como novo estado:
-                    novosEstados.append(qErro)
-                    # atualiza tamanho da matriz
-                    qtdEstados = len(novosEstados)
-                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
-                # atualiza conteudo da matriz:
-                matR = atualizaContMatriz(matR, indiceEstado, coluna, qErro)
-
-            indiceEstado += 1
-            if indiceEstado >= len(novosEstados):
-                flag = False
-                break
-            else:
-                fechoAtual = novosEstados[indiceEstado]
-
-
-    print("\nmatR: \n%s" % matR)
-
-
-def conversao_2(afn):
-    """
-    Monta o AFD, a partir do AFND-e e do Fecho-e de cada estado.
-    :return: um AFD.
-    """
-
-    # instancia novo automato:
-    afd = auto.Automato()
-    afd.setEstadoInicial(0) # seta estado inicial
-
-    alfa = afn.getAlfabeto()
-    alfabeto = alfa.copy() # absolutamente necessário
-
-    # por não ter colocado '&' junto ao alfabeto da base:
-    if len(alfabeto) > 1:
-        # retira último elemento ('&'):
-        alfabeto.pop()
-    tamAlfabeto = len(alfabeto)
-
-    afd.setAlfabeto(alfabeto) # seta alfabeto
-    matA = afn.getmTransicao()
-
-    matR = np.zeros([1, tamAlfabeto], dtype=list)  # cria array de listas
-    for i in range(tamAlfabeto):
-        matR[0][i] = []  # cria células vazias na matrizR
-
-    indiceEstado = 0 # guarda indice do estado atual (fecho-e unidos)
     indiceColuna = 0
     visitados = set()
     f = afn.fechoE(indiceEstado, visitados)
@@ -709,9 +626,7 @@ def conversao_2(afn):
                     # coloca fechoAtual como novo estado:
                     novosEstados.append(fechosUnidos)
                     # atualiza tamanho da matriz
-                    qtdEstados = len(novosEstados)
                     matR = atualizaTamMatriz(matR, tamAlfabeto)
-                #print("Matriz em  fechosUnidos: \n%s"%matR)
 
             # trata-se estado de erro:
             else:
@@ -725,7 +640,6 @@ def conversao_2(afn):
                     novosEstados.append(qErro)
                     # atualiza tamanho da matriz
                     matR = atualizaTamMatriz(matR, tamAlfabeto)
-                #print("Matriz em  qErro: \n%s" % matR)
 
             if indiceColuna+1 < tamAlfabeto:
                 indiceColuna += 1
@@ -734,13 +648,27 @@ def conversao_2(afn):
         indiceEstado += 1
         if indiceEstado < len(novosEstados):
             fechoAtual = novosEstados[indiceEstado]
-            # coluna = 0, quando atualiza o fechoAtual
+            # coluna recebe 0, quando atualiza o fechoAtual.
             indiceColuna = 0
 
         elif indiceEstado >= len(novosEstados)-1:
             break
 
-    print("\nmatR: \n%s" % matR)
+    # transforma conteúdo das celulas em um numero (estado)
+    matR = simplificaMatrizR(novosEstados, matR, tamAlfabeto)
+
+    afd.setmTransicao(matR) # seta matriz de transição
+
+    # seta conjunto de estados
+    estadosAFD = listaEstados(novosEstados)
+    afd.setEstados(estadosAFD)
+
+    # setar estados finais
+    estadoFinalAFN = afn.getEstadoFinal()
+    estadosFinais = listaEstadosFinais(novosEstados, estadoFinalAFN)
+    afd.setEstadoFinal(estadosFinais)
+
+    return afd
 
 
 def atualizaTamMatriz(matR, tamAlfabeto):
@@ -756,6 +684,7 @@ def atualizaTamMatriz(matR, tamAlfabeto):
 
     return matrizR
 
+
 def atualizaContMatriz(matR, linha, coluna, conteudo):
     """
     Atualiza conteúdo da matriz resultante;
@@ -770,6 +699,54 @@ def atualizaContMatriz(matR, linha, coluna, conteudo):
     matR[linha][coluna] = conteudo
 
     return matR
+
+
+def simplificaMatrizR(novosEstados, matR, tamAlfabeto):
+    """
+    Recebe uma matriz com listas como células,
+    devolve uma matriz com numeros como celula.
+    :param novosEstados: lista (de lista) dos estados da matriz.;
+    :param matR: matriz com listas nas celulas;
+    :return: matSimples, matriz com numeros nas celulas.
+    """
+    qtdEstados = len(novosEstados)
+
+    # usar programação dinâmica aqui:
+    # está gastando recursos desnecessários, com demasiadas verificações.
+    for i in range(qtdEstados):
+        for j in range(qtdEstados):
+            for k in range(tamAlfabeto):
+                if matR[j][k] == novosEstados[i]:
+                    matR[j][k] = [i]
+
+    return matR
+
+
+def listaEstados(novosEstados):
+    """
+    Constroi lista de estados do AFD com base em novosEstados.
+    :param novosEstados: lista com listas como elementos;
+    :return: estadoAFD, lista com numeros como elemento.
+    """
+    estadosAFD = []
+    for i in range(len(novosEstados)):
+        estadosAFD.append(i)
+
+    return estadosAFD
+
+
+def listaEstadosFinais(novosEstados, estadoFinalAFN):
+    """
+    Constroi lista com todos os estados finais do AFD. 
+    :return: 
+    """
+    estadoFinaisAFD = []
+    for i in range(len(novosEstados)):
+        if estadoFinalAFN in novosEstados[i]:
+            estadoFinaisAFD.append(i)
+
+    return estadoFinaisAFD
+
 
 def mostraFecho(afn):
     estados = afn.getEstados()
@@ -792,4 +769,4 @@ def imprimeAutomato(automato):
         print("q%s" % i)
     print("\n Matriz de Transição: \n%s" % automato.getmTransicao())
     print("\n Estado Inicial: ->q%s" % automato.getEstadoInicial())
-    print("\n Estado Final: *q%s\n" % automato.getEstadosFinais())
+    print("\n Estado Final: *q%s\n" % automato.getEstadoFinal())
