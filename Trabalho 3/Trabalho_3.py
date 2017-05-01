@@ -143,14 +143,15 @@ def montaPosfixa(posfixa):
         #messagebox.showinfo("Parabéns", "Expressão Aceita!")
         #print("\nExpressão Aceita!")
 
-        #mostra os fechos-e de cada estado:
-        mostraFecho(op1)
-
         # imprime a quintupla que define o automato:
         imprimeAutomato(op1)
 
+        # mostra os fechos-e de cada estado:
+        mostraFecho(op1)
+
         # monta AFD a partir do AFN:
-        conversao(op1)
+        #conversao(op1)
+        conversao_2(op1)
 
     else:
         #messagebox.showerror("Erro", "Expresão Rejeitada!")
@@ -592,16 +593,15 @@ def conversao(afn):
     fechoAtual = list(f)
     novosEstados = [] # guarda lista com novos estados
     novosEstados.append(fechoAtual)
-    tamEstadosAtual = len(novosEstados)
-    tamEstadosAntigo = 100
+    flag = True
 
-# PULO DO GATO:
-    while tamEstadosAtual != tamEstadosAntigo :
-        for estado in fechoAtual:
+# VOLTAMOS ao problema das colunas que não iteram no tempo correto!
+    while flag:
+        for coluna in range(tamAlfabeto):
             uniaoFecho = set()  # fechos dos estados encontrados
 
             # percorre simbolos do alfabeto i.e. coluna da matrizAFN
-            for coluna in range(tamAlfabeto):
+            for estado in fechoAtual:
                 #print("Indice Estado: %s Coluna: %s" % (indiceEstado, coluna))
                 if matA[estado][coluna]:
 
@@ -609,56 +609,143 @@ def conversao(afn):
                     for i in lista:
                         visitados = set()
                         f = afn.fechoE(i, visitados)
+                        print("Fecho-e de q%s: %s"%(i,f))
                         # unir os fechos dos estados encontrados:
                         uniaoFecho.update(f)
 
-                # converte para lista (conveniente para o momento)
-                fechosUnidos = list(uniaoFecho)
+            # converte para lista (conveniente para o momento)
+            fechosUnidos = list(uniaoFecho)
 
-                if fechosUnidos:
-                    # verifica necessidade de criar novos estados:
-                    if fechosUnidos not in novosEstados:
-                        # coloca fechoAtual como novo estado:
-                        novosEstados.append(fechosUnidos)
-                        # atualiza tamanho da matriz
-                        matR = atualizaTamMatriz(matR, indiceEstado, tamAlfabeto)
-                        indiceEstado += 1
+            if fechosUnidos:
+                # verifica necessidade de criar novos estados:
+                if fechosUnidos not in novosEstados:
+                    # coloca fechoAtual como novo estado:
+                    novosEstados.append(fechosUnidos)
+                    # atualiza tamanho da matriz
+                    qtdEstados = len(novosEstados)
+                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
+                # atualiza conteudo da matriz:
+                matR = atualizaContMatriz(matR, indiceEstado, coluna, fechosUnidos)
 
+            # trata-se estado de erro:
+            else:
+                qErro = [-1]
+                if qErro not in novosEstados:
+                    # coloca qErro como novo estado:
+                    novosEstados.append(qErro)
+                    # atualiza tamanho da matriz
+                    qtdEstados = len(novosEstados)
+                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
+                # atualiza conteudo da matriz:
+                matR = atualizaContMatriz(matR, indiceEstado, coluna, qErro)
 
-                    # estado já existe, i.e, não é estado novo:
-
-                    # atualiza conteudo da matriz:
-                    matR = atualizaContMatriz(matR, indiceEstado-1, coluna, fechosUnidos)
-
-                # trata-se estado de erro:
-                else:
-                    qErro = [-1]
-                    # criar estado de erro:
-                    if qErro not in novosEstados:
-                        # coloca -1 como novo estado:
-                        novosEstados.append(qErro)
-                        # atualiza tamanho da matriz
-                        matR = atualizaTamMatriz(matR, indiceEstado, tamAlfabeto)
-                        indiceEstado += 1
-
-                    # atualiza conteudo da matriz:
-                    matR = atualizaContMatriz(matR, indiceEstado-1, coluna, qErro)
-
-            # NECESSITA CORREÇÕES AQUI:
-            print("Fecho Atual: %s Fecho Unidos: %s"%(fechoAtual, fechosUnidos))
-
-            # se houve alteração no fechoAtual, então:
-            tamEstadosAntigo = tamEstadosAtual
-            tamEstadosAtual = len(novosEstados)
-            if fechoAtual == fechosUnidos:
-                # sai do while:
+            indiceEstado += 1
+            if indiceEstado >= len(novosEstados):
+                flag = False
                 break
             else:
-            # atualiza conteudo de fechoAtual:
-                fechoAtual = fechosUnidos
+                fechoAtual = novosEstados[indiceEstado]
 
 
     print("\nmatR: \n%s" % matR)
+
+
+def conversao_2(afn):
+    """
+    Monta o AFD, a partir do AFND-e e do Fecho-e de cada estado.
+    :return: um AFD.
+    """
+
+    # instancia novo automato:
+    afd = auto.Automato()
+    afd.setEstadoInicial(0) # seta estado inicial
+
+    alfa = afn.getAlfabeto()
+    alfabeto = alfa.copy() # absolutamente necessário
+
+    # por não ter colocado '&' junto ao alfabeto da base:
+    if len(alfabeto) > 1:
+        # retira último elemento ('&'):
+        alfabeto.pop()
+    tamAlfabeto = len(alfabeto)
+
+    afd.setAlfabeto(alfabeto) # seta alfabeto
+    matA = afn.getmTransicao()
+
+    matR = np.zeros([1, tamAlfabeto], dtype=list)  # cria array de listas
+    for i in range(tamAlfabeto):
+        matR[0][i] = []  # cria células vazias na matrizR
+
+    indiceEstado = 0 # guarda indice do estado atual (fecho-e unidos)
+    indiceColuna = 0
+    visitados = set()
+    f = afn.fechoE(indiceEstado, visitados)
+    fechoAtual = list(f)
+    novosEstados = [] # guarda lista com novos estados
+    novosEstados.append(fechoAtual) # a iniciar pelo fecho-e de q0
+
+    # tudo certo com as colunas:
+    # indiceEstados está ultrapasssando limite (len(novosEstados))
+    # como isso pode acontecer???
+    while True:
+        while True:
+            print("\nNovos Estados: %s, Indice dos Estados: %s"%(novosEstados, indiceEstado))
+            uniaoFecho = set()  # fechos dos estados encontrados
+            # percorre simbolos do alfabeto i.e. coluna da matrizAFN
+            for estado in fechoAtual:
+                if matA[estado][indiceColuna]:
+                    lista = matA[estado][indiceColuna]
+                    for i in lista:
+                        visitados = set()
+                        f = afn.fechoE(i, visitados)
+                        # unir os fechos dos estados encontrados:
+                        uniaoFecho.update(f)
+
+            # converte para lista (conveniente para o momento)
+            fechosUnidos = list(uniaoFecho)
+
+            if fechosUnidos:
+                # atualiza conteudo da matriz:
+                matR = atualizaContMatriz(matR, indiceEstado, indiceColuna, fechosUnidos)
+
+                # verifica necessidade de criar nova linha:
+                if fechosUnidos not in novosEstados:
+                    # coloca fechoAtual como novo estado:
+                    novosEstados.append(fechosUnidos)
+                    # atualiza tamanho da matriz
+                    qtdEstados = len(novosEstados)
+                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
+
+            # trata-se estado de erro:
+            else:
+                qErro = [-1]
+                # atualiza conteudo da matriz:
+                matR = atualizaContMatriz(matR, indiceEstado, indiceColuna, qErro)
+
+                # verifica necessidade de criar nova linha:
+                if [-1] not in novosEstados:
+                    # coloca qErro como novo estado:
+                    novosEstados.append(qErro)
+                    # atualiza tamanho da matriz
+                    qtdEstados = len(novosEstados)
+                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
+
+            if indiceColuna+1 < tamAlfabeto:
+                indiceColuna += 1
+            else:
+                break
+        indiceEstado += 1
+        if indiceEstado < len(novosEstados):
+            fechoAtual = novosEstados[indiceEstado]
+            # coluna = 0, quando atualiza o fechoAtual
+            indiceColuna = 0
+
+        elif indiceEstado >= len(novosEstados)-1:
+            print("\nUma vez\n")
+            break
+
+    print("\nmatR: \n%s" % matR)
+
 
 def atualizaTamMatriz(matR, indiceEstado, tamAlfabeto):
     """
