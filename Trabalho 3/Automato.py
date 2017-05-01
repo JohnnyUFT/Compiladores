@@ -123,7 +123,6 @@ class Automato:
         # só retorna -1 se não encontrar estado equivalente
         return -1
 
-
     def ehEstadoFinal(self, estado):
         """
         Método reescrito como getEstadoFinal():
@@ -145,7 +144,6 @@ class Automato:
             # a corrigir
             return listaVazia
 
-
     def fechoE(self, estadoAtual, visitados):
         saida = set()
         if estadoAtual not in visitados:
@@ -162,7 +160,6 @@ class Automato:
             return saida
 
         return saida
-
 
     def minimizaAFD(self):
         """
@@ -181,7 +178,6 @@ class Automato:
                         mat2[i][j] = 1
                     else:
                         mat2[i][j] = 0
-
 
     def ehFinal(self, estado):
         """

@@ -684,12 +684,8 @@ def conversao_2(afn):
     novosEstados = [] # guarda lista com novos estados
     novosEstados.append(fechoAtual) # a iniciar pelo fecho-e de q0
 
-    # tudo certo com as colunas:
-    # indiceEstados está ultrapasssando limite (len(novosEstados))
-    # como isso pode acontecer???
     while True:
         while True:
-            print("\nNovos Estados: %s, Indice dos Estados: %s"%(novosEstados, indiceEstado))
             uniaoFecho = set()  # fechos dos estados encontrados
             # percorre simbolos do alfabeto i.e. coluna da matrizAFN
             for estado in fechoAtual:
@@ -714,7 +710,8 @@ def conversao_2(afn):
                     novosEstados.append(fechosUnidos)
                     # atualiza tamanho da matriz
                     qtdEstados = len(novosEstados)
-                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
+                    matR = atualizaTamMatriz(matR, tamAlfabeto)
+                #print("Matriz em  fechosUnidos: \n%s"%matR)
 
             # trata-se estado de erro:
             else:
@@ -723,12 +720,12 @@ def conversao_2(afn):
                 matR = atualizaContMatriz(matR, indiceEstado, indiceColuna, qErro)
 
                 # verifica necessidade de criar nova linha:
-                if [-1] not in novosEstados:
+                if qErro not in novosEstados:
                     # coloca qErro como novo estado:
                     novosEstados.append(qErro)
                     # atualiza tamanho da matriz
-                    qtdEstados = len(novosEstados)
-                    matR = atualizaTamMatriz(matR, qtdEstados, tamAlfabeto)
+                    matR = atualizaTamMatriz(matR, tamAlfabeto)
+                #print("Matriz em  qErro: \n%s" % matR)
 
             if indiceColuna+1 < tamAlfabeto:
                 indiceColuna += 1
@@ -741,13 +738,12 @@ def conversao_2(afn):
             indiceColuna = 0
 
         elif indiceEstado >= len(novosEstados)-1:
-            print("\nUma vez\n")
             break
 
     print("\nmatR: \n%s" % matR)
 
 
-def atualizaTamMatriz(matR, indiceEstado, tamAlfabeto):
+def atualizaTamMatriz(matR, tamAlfabeto):
     """
     Atualiza tamanho da matriz resultante conforme necessidade;
     :param matR: matriz em seu tamanho atual.
@@ -756,8 +752,7 @@ def atualizaTamMatriz(matR, indiceEstado, tamAlfabeto):
     :return: matrizR - matriz com tamanho atualizado;
     """
     matrizR = np.append(matR, np.zeros \
-        ((indiceEstado, tamAlfabeto), dtype=list), axis=0)
-
+        ((1, tamAlfabeto), dtype=list), axis=0)
 
     return matrizR
 
@@ -771,7 +766,7 @@ def atualizaContMatriz(matR, linha, coluna, conteudo):
     :return: matriz com conteúdo atualizado.
     """
 
-    print("\nlinha: [%s] coluna: [%s] conteudo: [%s]"%(linha, coluna, conteudo))
+    #print("\nlinha: [%s] coluna: [%s] conteudo: [%s]"%(linha, coluna, conteudo))
     matR[linha][coluna] = conteudo
 
     return matR
