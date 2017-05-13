@@ -695,6 +695,7 @@ def atualizaContMatriz(matR, linha, coluna, conteudo):
     :return: matriz com conteúdo atualizado.
     """
 
+    #print("\nlinha: [%s] coluna: [%s] conteudo: [%s]"%(linha, coluna, conteudo))
     matR[linha][coluna] = conteudo
 
     return matR
