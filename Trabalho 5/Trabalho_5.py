@@ -3,7 +3,7 @@
 """
 author: Eufrázio Alexandre & Johnny Pereira
 email: (eufrazius,johnnyuft)@gmail.com
-last modified: March 2017
+last modified: May 2017
 """
 from tkinter import messagebox
 
@@ -154,4 +154,3 @@ def dominioPJ(p):
    :param p: regra de producao na gramatica ll1;
    :return: lista, cujos elementos pertencem ao dominio de p.
    """
-   
